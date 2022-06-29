@@ -1,28 +1,45 @@
-import React, { useState, Fragment } from "react";
-import { nanoid } from "nanoid";
+import React, { useState,useEffect , Fragment } from "react";
 import "./App.css";
 import ReadOnlyRow from "./components/ReadOnlyRow";
 import EditableRow from "./components/EditableRow";
+import { variables } from "./variables";
 
 const App = () => {
   const [contacts, setContacts] = useState([]);
   const [addFormData] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    email: "",
+    EmployeeName: "",
+   Address: "",
+   PhoneNumber: "",
+    EmailId: "",
   });
 
   const [editFormData, setEditFormData] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    email: "",
+    EmployeeName: "",
+   Address: "",
+   PhoneNumber: "",
+    EmailId: "",
   });
 
   const [editContactId, setEditContactId] = useState(null);
 
-  
+  // useEffect(()=>{
+  //   fetch(variables.API_URL+'employee')
+  //   .then(response=>response.json())
+  //   .then(data=>{
+  //     setContacts(data);
+  //   })
+  // },[])
+  const refreshList=()=>{
+    
+      fetch(variables.API_URL+'employee')
+      .then(response=>response.json())
+      .then(data=>{
+        setContacts(data);
+      })
+
+  };
+
+
 
   const handleEditFormChange = (event) => {
     event.preventDefault();
@@ -39,48 +56,91 @@ const App = () => {
   const handleAddFormSubmit = (event) => {
     event.preventDefault();
 
-    const newContact = {
-      id: nanoid(),
-      fullName: addFormData.fullName,
-      address: addFormData.address,
-      phoneNumber: addFormData.phoneNumber,
-      email: addFormData.email,
-    };
+    // const newContact = {
+    //   EmployeeName: addFormData.EmployeeName,
+    //  Address: addFormData.Address,
+    //  PhoneNumber: addFormData.PhoneNumber,
+    //   EmailId: addFormData.EmailId,
+    // };
 
-    const newContacts = [...contacts, newContact];
-    setContacts(newContacts);
+    // const newContacts = [...contacts, newContact];
+    // setContacts(newContacts);
+    
+ fetch(variables.API_URL+'employee',{
+  method :'POST',
+  headers:{"Content-Type":"application/json","Accept":"application/json"},
+  body: JSON.stringify(
+    {
+      EmployeeName: addFormData.EmployeeName,
+      Address: addFormData.Address,
+      PhoneNumber: addFormData.PhoneNumber,
+      EmailId: addFormData.EmailId
+    }
+  )
+}
+)
+.then(res=>res.json())
+.then((result)=>{
+  // alert(result);
+  refreshList();
+},(error)=>{
+  alert('Failed');
+}
+)
   };
 
   const handleEditFormSubmit = (event) => { 
     event.preventDefault();
 
     const editedContact = {
-      id: editContactId,
-      fullName: editFormData.fullName,
-      address: editFormData.address,
-      phoneNumber: editFormData.phoneNumber,
-      email: editFormData.email,
+      EmployeeId: editContactId,
+      EmployeeName: editFormData.EmployeeName,
+     Address: editFormData.Address,
+     PhoneNumber: editFormData.PhoneNumber,
+      EmailId: editFormData.EmailId,
     };
 
     const newContacts = [...contacts];
 
-    const index = contacts.findIndex((contact) => contact.id === editContactId);
+    const index = contacts.findIndex((contact) => contact.EmployeeId === editContactId);
 
     newContacts[index] = editedContact;
 
-    setContacts(newContacts);
+    // setContacts(newContacts);
+    fetch(variables.API_URL+'employee',{
+      method :'PUT',
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body: JSON.stringify(
+        {
+          EmployeeId: editContactId,
+          EmployeeName: editFormData.EmployeeName,
+          Address: editFormData.Address,
+          PhoneNumber: editFormData.PhoneNumber,
+          EmailId: editFormData.EmailId
+        }
+      )
+    }
+    )
+    .then(res=>res.json())
+    .then((result)=>{
+      // alert(result);
+      refreshList();
+    },(error)=>{
+      alert('Failed');
+    }
+    )
     setEditContactId(null);
   };
 
   const handleEditClick = (event, contact) => {
     event.preventDefault();
-    setEditContactId(contact.id);
+    setEditContactId(contact.EmployeeId);
 
     const formValues = {
-      fullName: contact.fullName,
-      address: contact.address,
-      phoneNumber: contact.phoneNumber,
-      email: contact.email,
+      EmployeeName: contact.EmployeeName,
+     Address: contact.Address,
+     PhoneNumber: contact.PhoneNumber,
+      EmailId: contact.EmailId,
     };
 
     setEditFormData(formValues);
@@ -91,14 +151,35 @@ const App = () => {
   };
 
   const handleDeleteClick = (contactId) => {
-    const newContacts = [...contacts];
+    // const newContacts = [...contacts];
 
-    const index = contacts.findIndex((contact) => contact.id === contactId);
+    // const index = contacts.findIndex((contact) => contact.id === contactId);
 
-    newContacts.splice(index, 1);
+    // newContacts.splice(index, 1);
 
-    setContacts(newContacts);
+    // setContacts(newContacts);
+    fetch(variables.API_URL+'employee/'+contactId,{
+      method :'DELETE',
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+    })
+    .then(res=>res.json())
+    .then((result)=>{
+      // alert(result);
+      refreshList();
+    },(error)=>{
+      alert('Failed');
+    }
+    )
   };
+
+  useEffect(()=>{
+    fetch(variables.API_URL+'employee')
+    .then(response=>response.json())
+    .then(data=>{
+      setContacts(data);
+    })
+  },[])
+
  
 
   return (
@@ -114,14 +195,14 @@ const App = () => {
               <th>Name</th>
               <th>Address</th>
               <th>Phone Number</th>
-              <th>Email</th>
+              <th>EmailId</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
           {contacts.map((contact) => (
               <Fragment>
-                {editContactId === contact.id ? (
+                {editContactId === contact.EmployeeId ? (
                   <EditableRow
                     editFormData={editFormData}
                     handleEditFormChange={handleEditFormChange}
